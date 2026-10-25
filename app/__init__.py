@@ -10,6 +10,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    
+    from app import models  # noqa: F401
 
     @app.route("/")
     def index():
