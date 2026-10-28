@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block titulo %}Criar conta - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Criar conta</h1>
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label" for="nome">Nome completo</label>
+            <input class="form-control" id="nome" name="nome" maxlength="120"
+                   value="{{ dados.get('nome', '') }}" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="email">E-mail</label>
+            <input class="form-control" type="email" id="email" name="email"
+                   value="{{ dados.get('email', '') }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="senha">Senha</label>
+            <input class="form-control" type="password" id="senha" name="senha"
+                   minlength="8" required>
+            <div class="form-text">Mínimo de 8 caracteres.</div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="cpf">CPF</label>
+              <input class="form-control" id="cpf" name="cpf" inputmode="numeric"
+                     maxlength="14" value="{{ dados.get('cpf', '') }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="data_nascimento">Data de nascimento</label>
+              <input class="form-control" type="date" id="data_nascimento" name="data_nascimento"
+                     value="{{ dados.get('data_nascimento', '') }}" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="telefone">Telefone (opcional)</label>
+            <input class="form-control" id="telefone" name="telefone" inputmode="tel"
+                   maxlength="20" value="{{ dados.get('telefone', '') }}">
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Criar conta</button>
+        </form>
+        <p class="text-center mt-3 mb-0">
+          Já tem conta? <a href="{{ url_for('auth.login') }}">Entrar</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

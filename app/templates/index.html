@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<div class="p-5 bg-white rounded shadow-sm">
+  <h1 class="h3">MedAgenda</h1>
+  {% if current_user.is_authenticated %}
+    <p class="lead mb-0">Olá, {{ current_user.nome }}!</p>
+  {% else %}
+    <p class="lead">Agende suas consultas de forma simples.</p>
+    <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Entrar</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('auth.cadastro') }}">Criar conta</a>
+  {% endif %}
+</div>
+{% endblock %}
