@@ -16,7 +16,15 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="menu">
-        <ul class="navbar-nav me-auto"></ul>
+        <ul class="navbar-nav me-auto">
+  {% if current_user.is_authenticated %}
+    {% if current_user.eh_recepcionista %}
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('pacientes.lista') }}">Pacientes</a></li>
+    {% else %}
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('pacientes.meu') }}">Meu cadastro</a></li>
+    {% endif %}
+  {% endif %}
+</ul>
         <ul class="navbar-nav ms-auto align-items-lg-center">
           {% if current_user.is_authenticated %}
             <li class="navbar-text me-3">{{ current_user.nome }} ({{ current_user.papel.value }})</li>

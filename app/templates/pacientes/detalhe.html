@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ paciente.nome }} - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h1 class="h4 mb-0">{{ paciente.nome }}</h1>
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('pacientes.editar', paciente_id=paciente.id) }}">Editar</a>
+        </div>
+
+        <dl class="row mb-0">
+          <dt class="col-sm-4">CPF</dt>
+          <dd class="col-sm-8">{{ paciente.cpf|cpf }}</dd>
+
+          <dt class="col-sm-4">Data de nascimento</dt>
+          <dd class="col-sm-8">{{ paciente.data_nascimento|data_br }}</dd>
+
+          <dt class="col-sm-4">Telefone</dt>
+          <dd class="col-sm-8">{{ paciente.telefone|telefone or "Não informado" }}</dd>
+
+          {% if current_user.eh_recepcionista %}
+            <dt class="col-sm-4">Conta de acesso</dt>
+            <dd class="col-sm-8">
+              {% if paciente.usuario %}{{ paciente.usuario.email }}{% else %}Sem conta{% endif %}
+            </dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    {% if current_user.eh_recepcionista %}
+      <a class="btn btn-link mt-3" href="{{ url_for('pacientes.lista') }}">&larr; Voltar à lista</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

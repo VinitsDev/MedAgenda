@@ -17,12 +17,19 @@ def create_app():
     login_manager.login_message_category = "warning"
 
     from app import models  # noqa: F401
+    from app.formatadores import formatar_cpf, formatar_data, formatar_telefone
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
+    from app.routes.pacientes import pacientes_bp
     from app.commands import registrar_comandos
+
+    app.add_template_filter(formatar_cpf, "cpf")
+    app.add_template_filter(formatar_telefone, "telefone")
+    app.add_template_filter(formatar_data, "data_br")
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(pacientes_bp)
     registrar_comandos(app)
 
     return app
