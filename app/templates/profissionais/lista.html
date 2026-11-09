@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block titulo %}Profissionais - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Profissionais</h1>
+  {% if current_user.eh_recepcionista %}
+    <a class="btn btn-primary" href="{{ url_for('profissionais.novo') }}">Novo profissional</a>
+  {% endif %}
+</div>
+
+<form class="row g-2 mb-3" method="get" action="{{ url_for('profissionais.lista') }}">
+  <div class="col-sm-6 col-md-5">
+    <input class="form-control" type="search" name="q" value="{{ busca }}" maxlength="100"
+           placeholder="Buscar por nome" aria-label="Buscar por nome">
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <select class="form-select" name="especialidade" aria-label="Filtrar por especialidade">
+      <option value="">Todas as especialidades</option>
+      {% for e in especialidades %}
+        <option value="{{ e.id }}" {% if especialidade_id == e.id %}selected{% endif %}>{{ e.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+    {% if busca or especialidade_id %}
+      <a class="btn btn-link" href="{{ url_for('profissionais.lista') }}">Limpar</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if profissionais.items %}
+  <div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Registro</th>
+          <th>Especialidades</th>
+          <th>Telefone</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in profissionais.items %}
+          <tr>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.registro }}</td>
+            <td>
+              {% for e in p.especialidades|sort(attribute='nome') %}
+                <span class="badge text-bg-primary">{{ e.nome }}</span>
+              {% endfor %}
+            </td>
+            <td>{{ p.telefone|telefone }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('profissionais.detalhe', profissional_id=p.id) }}">Ver</a>
+              {% if current_user.eh_recepcionista %}
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('profissionais.editar', profissional_id=p.id) }}">Editar</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted">{{ profissionais.total }} profissional(is) · página {{ profissionais.page }} de {{ profissionais.pages }}</span>
+    <nav aria-label="Paginação">
+      <ul class="pagination mb-0">
+        <li class="page-item {% if not profissionais.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('profissionais.lista', q=busca, especialidade=especialidade_id, page=profissionais.prev_num) if profissionais.has_prev else '#' }}">Anterior</a>
+        </li>
+        <li class="page-item {% if not profissionais.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('profissionais.lista', q=busca, especialidade=especialidade_id, page=profissionais.next_num) if profissionais.has_next else '#' }}">Próxima</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{% else %}
+  <div class="alert alert-info">Nenhum profissional encontrado.</div>
+{% endif %}
+{% endblock %}

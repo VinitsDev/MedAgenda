@@ -21,6 +21,8 @@ def create_app():
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
     from app.routes.pacientes import pacientes_bp
+    from app.routes.especialidades import especialidades_bp
+    from app.routes.profissionais import profissionais_bp
     from app.commands import registrar_comandos
 
     app.add_template_filter(formatar_cpf, "cpf")
@@ -30,6 +32,8 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(pacientes_bp)
+    app.register_blueprint(especialidades_bp)
+    app.register_blueprint(profissionais_bp)
     registrar_comandos(app)
 
     return app

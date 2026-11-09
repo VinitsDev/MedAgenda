@@ -40,3 +40,21 @@ def validar_telefone(telefone):
     if len(telefone) > 20:
         raise ErroDeNegocio("Telefone muito longo.")
     return telefone or None
+
+def validar_nome_especialidade(nome):
+    nome = " ".join((nome or "").split())
+    if len(nome) < 2 or len(nome) > 100:
+        raise ErroDeNegocio("Informe o nome da especialidade (2 a 100 caracteres).")
+    return nome
+
+
+def validar_registro(registro):
+    registro = " ".join((registro or "").split()).upper()
+    if len(registro) < 3 or len(registro) > 30:
+        raise ErroDeNegocio(
+            "Informe o registro profissional (3 a 30 caracteres), por exemplo CRM-SP 123456."
+        )
+    return registro
+
+def escapar_like(texto):
+    return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")

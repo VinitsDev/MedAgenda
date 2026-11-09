@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ profissional.nome }} - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h1 class="h4 mb-0">{{ profissional.nome }}</h1>
+          {% if current_user.eh_recepcionista %}
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('profissionais.editar', profissional_id=profissional.id) }}">Editar</a>
+          {% endif %}
+        </div>
+
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Registro</dt>
+          <dd class="col-sm-8">{{ profissional.registro }}</dd>
+
+          <dt class="col-sm-4">Telefone</dt>
+          <dd class="col-sm-8">{{ profissional.telefone|telefone or "Não informado" }}</dd>
+
+          <dt class="col-sm-4">Especialidades</dt>
+          <dd class="col-sm-8">
+            {% for e in profissional.especialidades|sort(attribute='nome') %}
+              <span class="badge text-bg-primary">{{ e.nome }}</span>
+            {% else %}
+              Nenhuma especialidade vinculada.
+            {% endfor %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <a class="btn btn-link mt-3" href="{{ url_for('profissionais.lista') }}">&larr; Voltar à lista</a>
+  </div>
+</div>
+{% endblock %}
