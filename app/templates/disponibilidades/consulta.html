@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block titulo %}Horários disponíveis - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<h1 class="h3 mb-3">Horários disponíveis</h1>
+
+<form method="get" action="{{ url_for('disponibilidades.consulta') }}" class="card card-body mb-3">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-4">
+      <label for="profissional" class="form-label">Profissional</label>
+      <select class="form-select" id="profissional" name="profissional">
+        <option value="">Todos</option>
+        {% for p in profissionais %}
+          <option value="{{ p.id }}" {% if p.id == profissional_id %}selected{% endif %}>{{ p.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="especialidade" class="form-label">Especialidade</label>
+      <select class="form-select" id="especialidade" name="especialidade">
+        <option value="">Todas</option>
+        {% for e in especialidades %}
+          <option value="{{ e.id }}" {% if e.id == especialidade_id %}selected{% endif %}>{{ e.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="data" class="form-label">Data</label>
+      <input type="date" class="form-control" id="data" name="data" value="{{ data }}">
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('disponibilidades.consulta') }}">Limpar</a>
+    </div>
+  </div>
+</form>
+
+{% if horarios.items %}
+  <p class="text-muted small">{{ horarios.total }} horário(s) encontrado(s).</p>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle bg-white">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Horário</th>
+          <th>Profissional</th>
+          <th>Especialidades</th>
+          {# Fase 6: coluna com o botão Agendar #}
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in horarios.items %}
+          <tr>
+            <td>{{ h.data|data_br }}</td>
+            <td>{{ h.hora_inicio.strftime('%H:%M') }} às {{ h.hora_fim.strftime('%H:%M') }}</td>
+            <td>
+              <a href="{{ url_for('profissionais.detalhe', profissional_id=h.profissional.id) }}">{{ h.profissional.nome }}</a>
+            </td>
+            <td>
+              {% for e in h.profissional.especialidades %}
+                <span class="badge text-bg-secondary me-1">{{ e.nome }}</span>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">Nenhum horário disponível para os filtros informados.</div>
+{% endif %}
+
+{% if horarios.pages > 1 %}
+  <nav aria-label="Paginação">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if not horarios.has_prev %}disabled{% endif %}">
+        {% if horarios.has_prev %}
+          <a class="page-link" href="{{ url_for('disponibilidades.consulta', page=horarios.prev_num, profissional=profissional_id, especialidade=especialidade_id, data=data or None) }}">Anterior</a>
+        {% else %}
+          <span class="page-link">Anterior</span>
+        {% endif %}
+      </li>
+      <li class="page-item disabled"><span class="page-link">Página {{ horarios.page }} de {{ horarios.pages }}</span></li>
+      <li class="page-item {% if not horarios.has_next %}disabled{% endif %}">
+        {% if horarios.has_next %}
+          <a class="page-link" href="{{ url_for('disponibilidades.consulta', page=horarios.next_num, profissional=profissional_id, especialidade=especialidade_id, data=data or None) }}">Próxima</a>
+        {% else %}
+          <span class="page-link">Próxima</span>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

@@ -1,5 +1,5 @@
 import re
-from datetime import date
+from datetime import date, time
 
 from app.services.errors import ErroDeNegocio
 
@@ -14,6 +14,15 @@ def converter_data(texto):
     except ValueError:
         return None
 
+def converter_hora(texto):
+    """Converte 'HH:MM' em time. Devolve None se for inválido ou tiver fuso."""
+    try:
+        hora = time.fromisoformat((texto or "").strip())
+    except ValueError:
+        return None
+    if hora.tzinfo is not None:
+        return None
+    return hora.replace(second=0, microsecond=0)
 
 def validar_nome(nome):
     nome = (nome or "").strip()

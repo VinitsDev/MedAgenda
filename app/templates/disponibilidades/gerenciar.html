@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block titulo %}Horários de {{ profissional.nome }} - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Horários de {{ profissional.nome }}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('profissionais.detalhe', profissional_id=profissional.id) }}">Voltar ao profissional</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Gerar horários</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('disponibilidades.gerenciar', profissional_id=profissional.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label for="data" class="form-label">Dia</label>
+          <input type="date" class="form-control" id="data" name="data" value="{{ valores.get('data', '') }}" required>
+        </div>
+        <div class="col-md-2">
+          <label for="hora_inicio" class="form-label">Início</label>
+          <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" value="{{ valores.get('hora_inicio', '') }}" required>
+        </div>
+        <div class="col-md-2">
+          <label for="hora_fim" class="form-label">Fim</label>
+          <input type="time" class="form-control" id="hora_fim" name="hora_fim" value="{{ valores.get('hora_fim', '') }}" required>
+        </div>
+        <div class="col-md-3">
+          <label for="duracao" class="form-label">Duração de cada horário (min)</label>
+          <input type="number" class="form-control" id="duracao" name="duracao" min="10" max="120" step="5" value="{{ valores.get('duracao', '30') }}" required>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button type="submit" class="btn btn-primary">Gerar</button>
+        </div>
+      </div>
+      <div class="form-text mt-2">
+        Ex.: das 08:00 às 12:00 de 30 em 30 min gera 8 horários. Duração de 10 a 120 min, no máximo 48 horários por vez.
+      </div>
+    </form>
+  </div>
+</div>
+
+<h2 class="h5">Horários a partir de hoje</h2>
+
+{% if horarios.items %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle bg-white">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Início</th>
+          <th>Fim</th>
+          <th>Status</th>
+          <th class="text-end">Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in horarios.items %}
+          <tr>
+            <td>{{ h.data|data_br }}</td>
+            <td>{{ h.hora_inicio.strftime('%H:%M') }}</td>
+            <td>{{ h.hora_fim.strftime('%H:%M') }}</td>
+            <td>
+              {% if h.status.name == 'DISPONIVEL' %}
+                <span class="badge text-bg-success">Disponível</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Ocupado</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {# Esconder o botão é só conforto; a regra real está no service. #}
+              {% if h.agendamentos %}
+                <span class="text-muted small">Tem agendamento no histórico</span>
+              {% else %}
+                <form method="post" action="{{ url_for('disponibilidades.remover', disponibilidade_id=h.id) }}"
+                      class="d-inline" onsubmit="return confirm('Remover este horário?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="page" value="{{ horarios.page }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Remover</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">Este profissional ainda não tem horários cadastrados.</div>
+{% endif %}
+
+{% if horarios.pages > 1 %}
+  <nav aria-label="Paginação">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if not horarios.has_prev %}disabled{% endif %}">
+        {% if horarios.has_prev %}
+          <a class="page-link" href="{{ url_for('disponibilidades.gerenciar', profissional_id=profissional.id, page=horarios.prev_num) }}">Anterior</a>
+        {% else %}
+          <span class="page-link">Anterior</span>
+        {% endif %}
+      </li>
+      <li class="page-item disabled"><span class="page-link">Página {{ horarios.page }} de {{ horarios.pages }}</span></li>
+      <li class="page-item {% if not horarios.has_next %}disabled{% endif %}">
+        {% if horarios.has_next %}
+          <a class="page-link" href="{{ url_for('disponibilidades.gerenciar', profissional_id=profissional.id, page=horarios.next_num) }}">Próxima</a>
+        {% else %}
+          <span class="page-link">Próxima</span>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}
