@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "agendamentos/_status.html" import badge_status %}
+
+{% block titulo %}Agendamento - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h1 class="h4 mb-0">Agendamento</h1>
+          {{ badge_status(agendamento.status) }}
+        </div>
+
+        <dl class="row mb-0">
+          {% if current_user.eh_recepcionista %}
+            <dt class="col-sm-4">Paciente</dt>
+            <dd class="col-sm-8">
+              <a href="{{ url_for('pacientes.detalhe', paciente_id=agendamento.paciente.id) }}">{{ agendamento.paciente.nome }}</a>
+              <small class="text-muted">({{ agendamento.paciente.cpf|cpf }})</small>
+            </dd>
+          {% endif %}
+
+          <dt class="col-sm-4">Profissional</dt>
+          <dd class="col-sm-8">{{ agendamento.disponibilidade.profissional.nome }}</dd>
+
+          <dt class="col-sm-4">Data</dt>
+          <dd class="col-sm-8">{{ agendamento.disponibilidade.data|data_br }}</dd>
+
+          <dt class="col-sm-4">Horário</dt>
+          <dd class="col-sm-8">{{ agendamento.disponibilidade.hora_inicio.strftime('%H:%M') }} às {{ agendamento.disponibilidade.hora_fim.strftime('%H:%M') }}</dd>
+
+          <dt class="col-sm-4">Agendado em</dt>
+          <dd class="col-sm-8">{{ agendamento.data_criacao.astimezone().strftime('%d/%m/%Y %H:%M') }}</dd>
+        </dl>
+
+        {% if agendamento.status.name == 'AGENDADO' %}
+          {# Esconder o botão é só conforto; a regra real (dono, status, horário) está no service. #}
+          <form method="post" action="{{ url_for('agendamentos.cancelar', agendamento_id=agendamento.id) }}"
+                class="mt-4" onsubmit="return confirm('Cancelar este agendamento?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger">Cancelar agendamento</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if current_user.eh_recepcionista %}
+      <a class="btn btn-link mt-3" href="{{ url_for('agendamentos.lista') }}">&larr; Voltar aos agendamentos</a>
+    {% else %}
+      <a class="btn btn-link mt-3" href="{{ url_for('agendamentos.meus') }}">&larr; Voltar aos meus agendamentos</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

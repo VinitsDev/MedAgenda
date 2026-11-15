@@ -19,12 +19,14 @@
         <ul class="navbar-nav me-auto">
           {% if current_user.is_authenticated %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('profissionais.lista') }}">Profissionais</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('disponibilidades.consulta') }}">Horários</a></li> {# NOVO #}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('disponibilidades.consulta') }}">Horários</a></li>
             {% if current_user.eh_recepcionista %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('pacientes.lista') }}">Pacientes</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('especialidades.lista') }}">Especialidades</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('agendamentos.lista') }}">Agendamentos</a></li>
             {% else %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('pacientes.meu') }}">Meu cadastro</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('agendamentos.meus') }}">Meus agendamentos</a></li>
             {% endif %}
           {% endif %}
         </ul>

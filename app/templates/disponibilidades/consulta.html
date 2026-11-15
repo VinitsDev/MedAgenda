@@ -46,7 +46,7 @@
           <th>Horário</th>
           <th>Profissional</th>
           <th>Especialidades</th>
-          {# Fase 6: coluna com o botão Agendar #}
+          <th class="text-end">Ação</th>
         </tr>
       </thead>
       <tbody>
@@ -61,6 +61,9 @@
               {% for e in h.profissional.especialidades %}
                 <span class="badge text-bg-secondary me-1">{{ e.nome }}</span>
               {% endfor %}
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-primary" href="{{ url_for('agendamentos.novo', disponibilidade_id=h.id) }}">Agendar</a>
             </td>
           </tr>
         {% endfor %}

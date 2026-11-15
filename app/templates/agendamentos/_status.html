@@ -1,0 +1,11 @@
+{% macro badge_status(status) %}
+  {% if status.name == 'AGENDADO' %}
+    <span class="badge text-bg-primary">Agendado</span>
+  {% elif status.name == 'CANCELADO' %}
+    <span class="badge text-bg-secondary">Cancelado</span>
+  {% elif status.name == 'REMARCADO' %}
+    <span class="badge text-bg-warning">Remarcado</span>
+  {% elif status.name == 'CONCLUIDO' %}
+    <span class="badge text-bg-success">Concluído</span>
+  {% endif %}
+{% endmacro %}

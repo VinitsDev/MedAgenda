@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "agendamentos/_status.html" import badge_status %}
+
+{% block titulo %}Agendamentos - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<h1 class="h3 mb-3">Agendamentos</h1>
+
+<form class="row g-2 mb-3" method="get" action="{{ url_for('agendamentos.lista') }}">
+  <div class="col-sm-6 col-md-5">
+    <input class="form-control" type="search" name="q" value="{{ busca }}" maxlength="100"
+           placeholder="Buscar paciente por nome ou CPF" aria-label="Buscar paciente por nome ou CPF">
+  </div>
+  <div class="col-sm-4 col-md-3">
+    <select class="form-select" name="status" aria-label="Status">
+      <option value="">Todos os status</option>
+      <option value="AGENDADO" {% if status == 'AGENDADO' %}selected{% endif %}>Agendado</option>
+      <option value="CANCELADO" {% if status == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+      <option value="REMARCADO" {% if status == 'REMARCADO' %}selected{% endif %}>Remarcado</option>
+      <option value="CONCLUIDO" {% if status == 'CONCLUIDO' %}selected{% endif %}>Concluído</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+    {% if busca or status %}
+      <a class="btn btn-link" href="{{ url_for('agendamentos.lista') }}">Limpar</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if agendamentos.items %}
+  <div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Horário</th>
+          <th>Paciente</th>
+          <th>Profissional</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in agendamentos.items %}
+          <tr>
+            <td>{{ a.disponibilidade.data|data_br }}</td>
+            <td>{{ a.disponibilidade.hora_inicio.strftime('%H:%M') }} às {{ a.disponibilidade.hora_fim.strftime('%H:%M') }}</td>
+            <td>{{ a.paciente.nome }}<br><small class="text-muted">{{ a.paciente.cpf|cpf }}</small></td>
+            <td>{{ a.disponibilidade.profissional.nome }}</td>
+            <td>{{ badge_status(a.status) }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('agendamentos.detalhe', agendamento_id=a.id) }}">Ver</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted">{{ agendamentos.total }} agendamento(s) · página {{ agendamentos.page }} de {{ agendamentos.pages }}</span>
+    <nav aria-label="Paginação">
+      <ul class="pagination mb-0">
+        <li class="page-item {% if not agendamentos.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.lista', q=busca or None, status=status or None, page=agendamentos.prev_num) if agendamentos.has_prev else '#' }}">Anterior</a>
+        </li>
+        <li class="page-item {% if not agendamentos.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.lista', q=busca or None, status=status or None, page=agendamentos.next_num) if agendamentos.has_next else '#' }}">Próxima</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{% else %}
+  <div class="alert alert-info">Nenhum agendamento encontrado.</div>
+{% endif %}
+{% endblock %}

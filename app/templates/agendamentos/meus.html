@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "agendamentos/_status.html" import badge_status %}
+
+{% block titulo %}Meus agendamentos - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Meus agendamentos</h1>
+  <a class="btn btn-primary" href="{{ url_for('disponibilidades.consulta') }}">Agendar consulta</a>
+</div>
+
+{% if agendamentos.items %}
+  <div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Horário</th>
+          <th>Profissional</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in agendamentos.items %}
+          <tr>
+            <td>{{ a.disponibilidade.data|data_br }}</td>
+            <td>{{ a.disponibilidade.hora_inicio.strftime('%H:%M') }} às {{ a.disponibilidade.hora_fim.strftime('%H:%M') }}</td>
+            <td>{{ a.disponibilidade.profissional.nome }}</td>
+            <td>{{ badge_status(a.status) }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('agendamentos.detalhe', agendamento_id=a.id) }}">Ver</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted">{{ agendamentos.total }} agendamento(s) · página {{ agendamentos.page }} de {{ agendamentos.pages }}</span>
+    <nav aria-label="Paginação">
+      <ul class="pagination mb-0">
+        <li class="page-item {% if not agendamentos.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.meus', page=agendamentos.prev_num) if agendamentos.has_prev else '#' }}">Anterior</a>
+        </li>
+        <li class="page-item {% if not agendamentos.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.meus', page=agendamentos.next_num) if agendamentos.has_next else '#' }}">Próxima</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{% else %}
+  <div class="alert alert-info">Você ainda não tem agendamentos.</div>
+{% endif %}
+{% endblock %}
