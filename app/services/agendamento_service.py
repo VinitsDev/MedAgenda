@@ -14,17 +14,11 @@ from app.models import (
     StatusAgendamento,
     StatusDisponibilidade,
 )
-from app.services import disponibilidade_service, paciente_service, validacoes
+from app.services import disponibilidade_service, paciente_service, tempo, validacoes
 from app.services.errors import AcessoNegado, ErroDeNegocio, NaoEncontrado
 from app.services.permissoes import exigir_recepcionista
 
 POR_PAGINA = 10
-
-
-def _agora():
-    # Mesma convenção da Fase 5: hora de parede do consultório, sem fuso.
-    return datetime.now()
-
 
 def _inicio(disponibilidade):
     return datetime.combine(disponibilidade.data, disponibilidade.hora_inicio)
@@ -66,7 +60,7 @@ def _motivo_indisponivel(disponibilidade):
     """Devolve o motivo (texto) se o horário não pode ser agendado, ou None."""
     if disponibilidade.status != StatusDisponibilidade.DISPONIVEL:
         return "Este horário não está mais disponível."
-    if _inicio(disponibilidade) <= _agora():
+    if _inicio(disponibilidade) <= tempo.agora():
         return "Este horário já passou."
     return None
 
@@ -194,7 +188,7 @@ def cancelar(usuario, agendamento_id):
 
     if agendamento.status != StatusAgendamento.AGENDADO:
         _recusar("Só é possível cancelar agendamentos com status Agendado.")
-    if _inicio(disponibilidade) <= _agora():
+    if _inicio(disponibilidade) <= tempo.agora():
         _recusar("Este horário já começou ou passou e não pode mais ser cancelado.")
 
     agendamento.status = StatusAgendamento.CANCELADO
@@ -211,7 +205,7 @@ def cancelar(usuario, agendamento_id):
 def _motivo_nao_remarcavel(agendamento, disponibilidade):
     if agendamento.status != StatusAgendamento.AGENDADO:
         return "Só é possível remarcar agendamentos com status Agendado."
-    if _inicio(disponibilidade) <= _agora():
+    if _inicio(disponibilidade) <= tempo.agora():
         return "Este horário já começou ou passou e não pode mais ser remarcado."
     return None
 
@@ -300,7 +294,7 @@ def alterar_status(usuario, agendamento_id, novo_status_texto):
 
     if agendamento.status != StatusAgendamento.AGENDADO:
         _recusar("Só é possível concluir agendamentos com status Agendado.")
-    if _inicio(disponibilidade) > _agora():
+    if _inicio(disponibilidade) > tempo.agora():
         _recusar("Só é possível concluir o atendimento depois do início do horário.")
 
     agendamento.status = StatusAgendamento.CONCLUIDO  # o horário continua OCUPADO

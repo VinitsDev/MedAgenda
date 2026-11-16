@@ -13,7 +13,7 @@ from app.models import (
     Profissional,
     StatusDisponibilidade,
 )
-from app.services import profissional_service, validacoes
+from app.services import profissional_service, tempo, validacoes
 from app.services.errors import ErroDeNegocio, NaoEncontrado
 from app.services.permissoes import exigir_recepcionista
 
@@ -21,11 +21,6 @@ POR_PAGINA = 10
 DURACAO_MINIMA = 10      # minutos
 DURACAO_MAXIMA = 120     # minutos
 MAX_HORARIOS_POR_GERACAO = 48
-
-
-def _agora():
-    # Data e hora de parede do consultório (a tabela não guarda fuso).
-    return datetime.now()
 
 
 def _minutos(hora):
@@ -54,7 +49,7 @@ def listar_do_profissional(usuario, profissional_id, pagina=1, por_pagina=POR_PA
         .options(selectinload(Disponibilidade.agendamentos))
         .where(
             Disponibilidade.profissional_id == profissional.id,
-            Disponibilidade.data >= _agora().date(),
+            Disponibilidade.data >= tempo.agora().date(),
         )
         .order_by(Disponibilidade.data, Disponibilidade.hora_inicio)
     )
@@ -65,7 +60,7 @@ def listar_do_profissional(usuario, profissional_id, pagina=1, por_pagina=POR_PA
 def consultar_livres(profissional_id=None, especialidade_id=None, data_texto=None,
                      pagina=1, por_pagina=POR_PAGINA):
     """Consulta geral: só horários DISPONIVEIS e futuros, com filtros opcionais."""
-    agora = _agora()
+    agora = tempo.agora()
     futuro = or_(
         Disponibilidade.data > agora.date(),
         and_(
@@ -143,7 +138,7 @@ def gerar(usuario, profissional_id, data_texto, inicio_texto, fim_texto, duracao
             f"{MAX_HORARIOS_POR_GERACAO}."
         )
 
-    if datetime.combine(dia, inicio) <= _agora():
+    if datetime.combine(dia, inicio) <= tempo.agora():
         raise ErroDeNegocio("Não é possível gerar horários no passado.")
 
     # Sobreposição: existente.inicio < novo_fim E existente.fim > novo_inicio.
