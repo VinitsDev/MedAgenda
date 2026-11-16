@@ -5,17 +5,9 @@ from app.extensions import db
 from app.models import Paciente
 from app.services import validacoes
 from app.services.errors import AcessoNegado, ErroDeNegocio, NaoEncontrado
+from app.services.permissoes import exigir_recepcionista
 
 POR_PAGINA = 10
-
-
-def _exigir_recepcionista(usuario):
-    if not usuario.eh_recepcionista:
-        raise AcessoNegado("Apenas a recepção pode realizar esta ação.")
-
-
-def _escapar_like(texto):
-    return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def obter(usuario, paciente_id):
@@ -32,12 +24,12 @@ def paciente_do_usuario(usuario):
 
 
 def listar(usuario, busca=None, pagina=1, por_pagina=POR_PAGINA):
-    _exigir_recepcionista(usuario)
+    exigir_recepcionista(usuario)
 
     consulta = db.select(Paciente).order_by(Paciente.nome, Paciente.id)
     termo = (busca or "").strip()
     if termo:
-        filtros = [Paciente.nome.ilike(f"%{_escapar_like(termo)}%", escape="\\")]
+        filtros = [Paciente.nome.ilike(f"%{validacoes.escapar_like(termo)}%", escape="\\")]
         digitos = validacoes.somente_digitos(termo)
         if digitos:
             filtros.append(Paciente.cpf.like(f"{digitos}%"))
@@ -47,7 +39,7 @@ def listar(usuario, busca=None, pagina=1, por_pagina=POR_PAGINA):
 
 
 def cadastrar(usuario, nome, cpf, data_nascimento, telefone=None):
-    _exigir_recepcionista(usuario)
+    exigir_recepcionista(usuario)
 
     nome = validacoes.validar_nome(nome)
     cpf = validacoes.validar_cpf(cpf)
