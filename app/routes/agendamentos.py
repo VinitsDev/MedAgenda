@@ -114,3 +114,59 @@ def cancelar(agendamento_id):
     else:
         flash("Agendamento cancelado.", "success")
     return redirect(url_for("agendamentos.detalhe", agendamento_id=agendamento_id))
+
+@agendamentos_bp.route("/<int:agendamento_id>/remarcar", methods=["GET", "POST"])
+@login_required
+def remarcar(agendamento_id):
+    if request.method == "POST":
+        try:
+            novo = agendamento_service.remarcar(
+                current_user,
+                agendamento_id,
+                request.form.get("disponibilidade_id", type=int),
+            )
+        except NaoEncontrado:
+            abort(404)
+        except AcessoNegado:
+            abort(403)
+        except ErroDeNegocio as erro:
+            flash(str(erro), "danger")
+        else:
+            flash("Consulta remarcada com sucesso.", "success")
+            return redirect(url_for("agendamentos.detalhe", agendamento_id=novo.id))
+
+    pagina = max(request.args.get("page", 1, type=int), 1)
+    try:
+        agendamento, horarios = agendamento_service.horarios_para_remarcar(
+            current_user, agendamento_id, pagina
+        )
+    except NaoEncontrado:
+        abort(404)
+    except AcessoNegado:
+        abort(403)
+    except ErroDeNegocio as erro:
+        if request.method == "GET":  # no POST, o erro já foi mostrado acima
+            flash(str(erro), "danger")
+        return redirect(url_for("agendamentos.detalhe", agendamento_id=agendamento_id))
+
+    return render_template(
+        "agendamentos/remarcar.html", agendamento=agendamento, horarios=horarios
+    )
+
+
+@agendamentos_bp.route("/<int:agendamento_id>/status", methods=["POST"])
+@recepcionista_required
+def alterar_status(agendamento_id):
+    try:
+        agendamento_service.alterar_status(
+            current_user, agendamento_id, request.form.get("status")
+        )
+    except NaoEncontrado:
+        abort(404)
+    except AcessoNegado:
+        abort(403)
+    except ErroDeNegocio as erro:
+        flash(str(erro), "danger")
+    else:
+        flash("Status atualizado.", "success")
+    return redirect(url_for("agendamentos.detalhe", agendamento_id=agendamento_id))

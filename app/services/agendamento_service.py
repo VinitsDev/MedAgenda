@@ -1,9 +1,9 @@
-"""Regras de negócio dos agendamentos (criar, consultar e cancelar)."""
+"""Regras de negócio dos agendamentos (criar, consultar, cancelar, remarcar e concluir)."""
 from datetime import datetime
 
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from app.extensions import db
 from app.models import (
@@ -14,7 +14,7 @@ from app.models import (
     StatusAgendamento,
     StatusDisponibilidade,
 )
-from app.services import paciente_service, validacoes
+from app.services import disponibilidade_service, paciente_service, validacoes
 from app.services.errors import AcessoNegado, ErroDeNegocio, NaoEncontrado
 from app.services.permissoes import exigir_recepcionista
 
@@ -71,6 +71,35 @@ def _motivo_indisponivel(disponibilidade):
     return None
 
 
+def _conflito_do_paciente(paciente_id, disponibilidade, ignorar_agendamento_id=None):
+    """Outro agendamento ATIVO do paciente que se sobreponha ao horário, ou None.
+
+    Critério: existente.inicio < novo_fim E existente.fim > novo_inicio.
+    Na remarcação, o próprio agendamento é ignorado (o horário dele será liberado).
+    """
+    consulta = (
+        db.select(Disponibilidade)
+        .join(Agendamento, Agendamento.disponibilidade_id == Disponibilidade.id)
+        .where(
+            Agendamento.paciente_id == paciente_id,
+            Agendamento.status == StatusAgendamento.AGENDADO,
+            Disponibilidade.data == disponibilidade.data,
+            Disponibilidade.hora_inicio < disponibilidade.hora_fim,
+            Disponibilidade.hora_fim > disponibilidade.hora_inicio,
+        )
+    )
+    if ignorar_agendamento_id is not None:
+        consulta = consulta.where(Agendamento.id != ignorar_agendamento_id)
+    return db.session.scalars(consulta.limit(1)).first()
+
+
+def _mensagem_conflito(conflito):
+    return (
+        f"Este paciente já tem um agendamento das {conflito.hora_inicio:%H:%M} "
+        f"às {conflito.hora_fim:%H:%M} neste dia, que conflita com este horário."
+    )
+
+
 def _travar_horario(disponibilidade_id):
     """SELECT ... FOR UPDATE: quem chegar depois espera o commit de quem chegou antes."""
     disponibilidade = db.session.scalar(
@@ -82,6 +111,18 @@ def _travar_horario(disponibilidade_id):
     if disponibilidade is None:
         raise NaoEncontrado("Horário não encontrado.")
     return disponibilidade
+
+
+def _travar_horarios(ids):
+    """Trava vários horários sempre em ordem crescente de id (evita deadlock)."""
+    linhas = db.session.scalars(
+        db.select(Disponibilidade)
+        .where(Disponibilidade.id.in_(ids))
+        .order_by(Disponibilidade.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).all()
+    return {d.id: d for d in linhas}
 
 
 def obter(usuario, agendamento_id):
@@ -123,24 +164,10 @@ def criar(usuario, disponibilidade_id, cpf=None):
         _recusar(motivo)
 
     # O mesmo paciente não pode ter dois agendamentos ativos que se sobreponham,
-    # nem com médicos diferentes. Critério: existente.inicio < novo_fim E existente.fim > novo_inicio.
-    conflito = db.session.scalars(
-        db.select(Disponibilidade)
-        .join(Agendamento, Agendamento.disponibilidade_id == Disponibilidade.id)
-        .where(
-            Agendamento.paciente_id == paciente.id,
-            Agendamento.status == StatusAgendamento.AGENDADO,
-            Disponibilidade.data == disponibilidade.data,
-            Disponibilidade.hora_inicio < disponibilidade.hora_fim,
-            Disponibilidade.hora_fim > disponibilidade.hora_inicio,
-        )
-        .limit(1)
-    ).first()
+    # nem com médicos diferentes.
+    conflito = _conflito_do_paciente(paciente.id, disponibilidade)
     if conflito is not None:
-        _recusar(
-            f"Este paciente já tem um agendamento das {conflito.hora_inicio:%H:%M} "
-            f"às {conflito.hora_fim:%H:%M} neste dia, que conflita com este horário."
-        )
+        _recusar(_mensagem_conflito(conflito))
 
     agendamento = Agendamento(
         disponibilidade_id=disponibilidade.id,
@@ -178,6 +205,111 @@ def cancelar(usuario, agendamento_id):
     except IntegrityError:
         db.session.rollback()
         raise ErroDeNegocio("Não foi possível cancelar. Tente novamente.")
+    return agendamento
+
+
+def _motivo_nao_remarcavel(agendamento, disponibilidade):
+    if agendamento.status != StatusAgendamento.AGENDADO:
+        return "Só é possível remarcar agendamentos com status Agendado."
+    if _inicio(disponibilidade) <= _agora():
+        return "Este horário já começou ou passou e não pode mais ser remarcado."
+    return None
+
+
+def horarios_para_remarcar(usuario, agendamento_id, pagina=1):
+    """Tela de remarcação (GET): horários livres do MESMO profissional. Nada é gravado."""
+    agendamento = obter(usuario, agendamento_id)
+    motivo = _motivo_nao_remarcavel(agendamento, agendamento.disponibilidade)
+    if motivo:
+        raise ErroDeNegocio(motivo)
+
+    horarios = disponibilidade_service.consultar_livres(
+        profissional_id=agendamento.disponibilidade.profissional_id, pagina=pagina
+    )
+    return agendamento, horarios
+
+
+def remarcar(usuario, agendamento_id, nova_disponibilidade_id):
+    """Antigo vira REMARCADO e libera o horário; nasce um novo AGENDADO. Mesma transação."""
+    agendamento = obter(usuario, agendamento_id)
+    if nova_disponibilidade_id is None:
+        raise ErroDeNegocio("Escolha o novo horário.")
+    antiga_id = agendamento.disponibilidade_id
+    if nova_disponibilidade_id == antiga_id:
+        raise ErroDeNegocio("Escolha um horário diferente do atual.")
+
+    horarios = _travar_horarios([antiga_id, nova_disponibilidade_id])
+    antiga = horarios.get(antiga_id)
+    nova = horarios.get(nova_disponibilidade_id)
+    if nova is None:
+        db.session.rollback()
+        raise NaoEncontrado("Horário não encontrado.")
+    db.session.refresh(agendamento)  # relê o status depois da trava
+
+    motivo = _motivo_nao_remarcavel(agendamento, antiga)
+    if motivo:
+        _recusar(motivo)
+    if nova.profissional_id != antiga.profissional_id:
+        _recusar("Só é possível remarcar para outro horário do mesmo profissional.")
+    motivo = _motivo_indisponivel(nova)
+    if motivo:
+        _recusar(motivo)
+
+    conflito = _conflito_do_paciente(
+        agendamento.paciente_id, nova, ignorar_agendamento_id=agendamento.id
+    )
+    if conflito is not None:
+        _recusar(_mensagem_conflito(conflito))
+
+    novo = Agendamento(
+        disponibilidade_id=nova.id,
+        paciente_id=agendamento.paciente_id,
+        status=StatusAgendamento.AGENDADO,
+    )
+    agendamento.status = StatusAgendamento.REMARCADO
+    antiga.status = StatusDisponibilidade.DISPONIVEL
+    nova.status = StatusDisponibilidade.OCUPADO
+    db.session.add(novo)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise ErroDeNegocio(
+            "Este horário acabou de ser ocupado por outra pessoa. Escolha outro."
+        )
+    return novo
+
+
+def alterar_status(usuario, agendamento_id, novo_status_texto):
+    """Só a recepção. Permitidos: AGENDADO -> CONCLUIDO e AGENDADO -> CANCELADO."""
+    exigir_recepcionista(usuario)
+    novo = StatusAgendamento.__members__.get((novo_status_texto or "").strip().upper())
+    if novo is None:
+        raise ErroDeNegocio("Status inválido.")
+    if novo == StatusAgendamento.CANCELADO:
+        return cancelar(usuario, agendamento_id)
+    if novo == StatusAgendamento.REMARCADO:
+        raise ErroDeNegocio("O status Remarcado só é atribuído pela remarcação.")
+    if novo != StatusAgendamento.CONCLUIDO:
+        raise ErroDeNegocio("Um agendamento não pode voltar para Agendado.")
+
+    agendamento = obter(usuario, agendamento_id)
+    disponibilidade = _travar_horario(agendamento.disponibilidade_id)
+    db.session.refresh(agendamento)
+
+    if agendamento.status != StatusAgendamento.AGENDADO:
+        _recusar("Só é possível concluir agendamentos com status Agendado.")
+    if _inicio(disponibilidade) > _agora():
+        _recusar("Só é possível concluir o atendimento depois do início do horário.")
+
+    agendamento.status = StatusAgendamento.CONCLUIDO  # o horário continua OCUPADO
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise ErroDeNegocio("Não foi possível concluir. Tente novamente.")
     return agendamento
 
 

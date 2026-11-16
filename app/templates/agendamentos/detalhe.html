@@ -36,12 +36,25 @@
         </dl>
 
         {% if agendamento.status.name == 'AGENDADO' %}
-          {# Esconder o botão é só conforto; a regra real (dono, status, horário) está no service. #}
-          <form method="post" action="{{ url_for('agendamentos.cancelar', agendamento_id=agendamento.id) }}"
-                class="mt-4" onsubmit="return confirm('Cancelar este agendamento?');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-outline-danger">Cancelar agendamento</button>
-          </form>
+          {# Esconder botões é só conforto; a regra real (dono, status, horário) está no service. #}
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <a class="btn btn-outline-primary" href="{{ url_for('agendamentos.remarcar', agendamento_id=agendamento.id) }}">Remarcar</a>
+
+            {% if current_user.eh_recepcionista %}
+              <form method="post" action="{{ url_for('agendamentos.alterar_status', agendamento_id=agendamento.id) }}"
+                    onsubmit="return confirm('Marcar este agendamento como concluído?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="CONCLUIDO">
+                <button type="submit" class="btn btn-outline-success">Marcar como concluído</button>
+              </form>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('agendamentos.cancelar', agendamento_id=agendamento.id) }}"
+                  onsubmit="return confirm('Cancelar este agendamento?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline-danger">Cancelar agendamento</button>
+            </form>
+          </div>
         {% endif %}
       </div>
     </div>

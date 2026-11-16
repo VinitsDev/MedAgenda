@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block titulo %}Remarcar agendamento - MedAgenda{% endblock %}
+
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Remarcar agendamento</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('agendamentos.detalhe', agendamento_id=agendamento.id) }}">Voltar ao agendamento</a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <dl class="row mb-0">
+      {% if current_user.eh_recepcionista %}
+        <dt class="col-sm-4">Paciente</dt>
+        <dd class="col-sm-8">{{ agendamento.paciente.nome }} <small class="text-muted">({{ agendamento.paciente.cpf|cpf }})</small></dd>
+      {% endif %}
+
+      <dt class="col-sm-4">Profissional</dt>
+      <dd class="col-sm-8">{{ agendamento.disponibilidade.profissional.nome }}</dd>
+
+      <dt class="col-sm-4">Horário atual</dt>
+      <dd class="col-sm-8">{{ agendamento.disponibilidade.data|data_br }}, {{ agendamento.disponibilidade.hora_inicio.strftime('%H:%M') }} às {{ agendamento.disponibilidade.hora_fim.strftime('%H:%M') }}</dd>
+    </dl>
+  </div>
+</div>
+
+<p class="text-muted">Escolha um novo horário do mesmo profissional. O horário atual será liberado.</p>
+
+{% if horarios.items %}
+  <div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Horário</th>
+          <th class="text-end">Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in horarios.items %}
+          <tr>
+            <td>{{ h.data|data_br }}</td>
+            <td>{{ h.hora_inicio.strftime('%H:%M') }} às {{ h.hora_fim.strftime('%H:%M') }}</td>
+            <td class="text-end">
+              <form method="post" action="{{ url_for('agendamentos.remarcar', agendamento_id=agendamento.id) }}"
+                    class="d-inline" onsubmit="return confirm('Remarcar para este horário?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="disponibilidade_id" value="{{ h.id }}">
+                <button type="submit" class="btn btn-sm btn-primary">Remarcar para este</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted">{{ horarios.total }} horário(s) · página {{ horarios.page }} de {{ horarios.pages }}</span>
+    <nav aria-label="Paginação">
+      <ul class="pagination mb-0">
+        <li class="page-item {% if not horarios.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.remarcar', agendamento_id=agendamento.id, page=horarios.prev_num) if horarios.has_prev else '#' }}">Anterior</a>
+        </li>
+        <li class="page-item {% if not horarios.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('agendamentos.remarcar', agendamento_id=agendamento.id, page=horarios.next_num) if horarios.has_next else '#' }}">Próxima</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{% else %}
+  <div class="alert alert-info">Não há outros horários livres para este profissional.</div>
+{% endif %}
+{% endblock %}
