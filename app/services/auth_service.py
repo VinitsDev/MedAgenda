@@ -5,14 +5,11 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models import Paciente, Papel, Usuario
+from app.services import validacoes
 from app.services.errors import ErroDeNegocio
 
 TAMANHO_MIN_SENHA = 8
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def _somente_digitos(texto):
-    return re.sub(r"\D", "", texto or "")
 
 
 def _validar_credenciais(nome, email, senha):
@@ -34,8 +31,8 @@ def _email_em_uso(email):
 
 def registrar_cliente(nome, email, senha, cpf, data_nascimento, telefone=None):
     nome, email = _validar_credenciais(nome, email, senha)
-    cpf = _somente_digitos(cpf)
-    telefone = _somente_digitos(telefone) or None
+    cpf = validacoes.somente_digitos(cpf)
+    telefone = validacoes.somente_digitos(telefone) or None
 
     if len(cpf) != 11:
         raise ErroDeNegocio("Informe um CPF com 11 dígitos.")

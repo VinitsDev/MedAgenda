@@ -1,4 +1,3 @@
-from datetime import date
 from urllib.parse import urlparse
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -6,6 +5,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from app.services import auth_service
 from app.services.errors import ErroDeNegocio
+from app.services.validacoes import converter_data
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -17,13 +17,6 @@ def _destino_seguro(destino):
     if partes.scheme or partes.netloc:
         return None
     return destino
-
-
-def _converter_data(texto):
-    try:
-        return date.fromisoformat(texto or "")
-    except ValueError:
-        return None
 
 
 @auth_bp.route("/cadastro", methods=["GET", "POST"])
@@ -40,7 +33,7 @@ def cadastro():
                 email=request.form.get("email"),
                 senha=request.form.get("senha"),
                 cpf=request.form.get("cpf"),
-                data_nascimento=_converter_data(request.form.get("data_nascimento")),
+                data_nascimento=converter_data(request.form.get("data_nascimento")),
                 telefone=request.form.get("telefone"),
             )
         except ErroDeNegocio as erro:
