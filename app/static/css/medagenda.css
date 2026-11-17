@@ -206,3 +206,39 @@ a { text-underline-offset: .2em; }
   text-align: center;
   padding: 1.75rem 0;
 }
+
+/* ---------- Telas de entrada (login e cadastro) ---------- */
+.auth-card { max-width: 940px; }
+
+.auth-lateral {
+  background: linear-gradient(160deg, var(--ma-petroleo) 0%, var(--ma-petroleo-profundo) 100%);
+  color: #fff;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.auth-lateral::after {
+  content: "";
+  position: absolute;
+  right: -46px;
+  bottom: -46px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--ma-coral);
+  opacity: .9;
+}
+.auth-lateral h2 { color: #fff; font-size: 1.65rem; line-height: 1.25; }
+.auth-lateral p { color: rgba(255, 255, 255, .8); }
+.auth-lateral ul { list-style: none; padding: 0; margin: 1.5rem 0 0; position: relative; z-index: 1; }
+.auth-lateral li {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  margin-bottom: .85rem;
+  font-size: .92rem;
+  color: rgba(255, 255, 255, .92);
+}
+.auth-lateral li svg { flex: none; margin-top: .2rem; }
