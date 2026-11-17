@@ -1,0 +1,208 @@
+/* MedAgenda - identidade visual
+   Estratégia: sobrescreve as variáveis do Bootstrap 5.3, então os templates
+   existentes mudam de visual sem edição. */
+
+:root {
+  --ma-petroleo: #0C6478;
+  --ma-petroleo-escuro: #09505F;
+  --ma-petroleo-profundo: #073F4B;
+  --ma-petroleo-claro: #E3F0F3;
+  --ma-coral: #F0795A;
+  --ma-areia: #F5F3EE;
+  --ma-areia-clara: #FBFAF7;
+  --ma-linha: #E6E1D6;
+  --ma-tinta: #1F2A37;
+  --ma-suave: #64748B;
+
+  --bs-primary: #0C6478;
+  --bs-primary-rgb: 12, 100, 120;
+  --bs-link-color: #0C6478;
+  --bs-link-color-rgb: 12, 100, 120;
+  --bs-link-hover-color: #09505F;
+  --bs-link-hover-color-rgb: 9, 80, 95;
+  --bs-body-bg: #F5F3EE;
+  --bs-body-color: #1F2A37;
+  --bs-secondary-color: #64748B;
+  --bs-border-color: #E6E1D6;
+  --bs-border-radius: .625rem;
+  --bs-border-radius-lg: .875rem;
+  --bs-body-font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+::selection { background: var(--ma-petroleo-claro); }
+
+h1, h2, h3, h4, .h1, .h2, .h3, .h4 {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--ma-petroleo-profundo);
+}
+
+a { text-underline-offset: .2em; }
+
+/* ---------- Navbar ---------- */
+.navbar-ma {
+  background: #fff;
+  border-bottom: 1px solid var(--ma-linha);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.4rem;
+  letter-spacing: -.02em;
+  color: var(--ma-petroleo-profundo);
+  text-decoration: none;
+}
+.marca:hover { color: var(--ma-petroleo-profundo); }
+.marca-nome strong { font-weight: 600; }
+.marca-nome span { font-weight: 400; color: var(--ma-petroleo); }
+
+.navbar-ma .nav-link {
+  color: var(--ma-suave);
+  font-weight: 500;
+  border-radius: .5rem;
+  padding: .45rem .85rem;
+}
+.navbar-ma .nav-link:hover { color: var(--ma-tinta); background: var(--ma-areia); }
+.navbar-ma .nav-link.active {
+  color: var(--ma-petroleo);
+  background: var(--ma-petroleo-claro);
+  font-weight: 600;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ma-petroleo-claro);
+  color: var(--ma-petroleo);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: .9rem;
+}
+.usuario-nome { font-weight: 600; font-size: .875rem; line-height: 1.15; }
+.usuario-papel {
+  font-size: .7rem;
+  color: var(--ma-suave);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ---------- Cartões e tabelas ---------- */
+.card {
+  border: 1px solid var(--ma-linha);
+  border-radius: var(--bs-border-radius-lg);
+}
+.shadow-sm { box-shadow: 0 1px 3px rgba(7, 63, 75, .08) !important; }
+.card-header {
+  background: var(--ma-petroleo-claro);
+  border-bottom: 1px solid var(--ma-linha);
+  color: var(--ma-petroleo-profundo);
+  font-weight: 600;
+}
+
+.table {
+  --bs-table-striped-bg: var(--ma-areia-clara);
+  --bs-table-hover-bg: var(--ma-petroleo-claro);
+}
+.table > thead th {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ma-suave);
+  font-weight: 600;
+  background: var(--ma-areia-clara);
+  border-bottom: 1px solid var(--ma-linha);
+  white-space: nowrap;
+}
+.table-responsive.rounded { border: 1px solid var(--ma-linha); }
+
+/* ---------- Botões ---------- */
+.btn { font-weight: 600; border-radius: .6rem; }
+
+.btn-primary {
+  --bs-btn-bg: #0C6478;
+  --bs-btn-border-color: #0C6478;
+  --bs-btn-hover-bg: #09505F;
+  --bs-btn-hover-border-color: #09505F;
+  --bs-btn-active-bg: #073F4B;
+  --bs-btn-active-border-color: #073F4B;
+  --bs-btn-disabled-bg: #0C6478;
+  --bs-btn-disabled-border-color: #0C6478;
+  --bs-btn-focus-shadow-rgb: 12, 100, 120;
+}
+.btn-outline-primary {
+  --bs-btn-color: #0C6478;
+  --bs-btn-border-color: #0C6478;
+  --bs-btn-hover-bg: #0C6478;
+  --bs-btn-hover-border-color: #0C6478;
+  --bs-btn-active-bg: #09505F;
+  --bs-btn-active-border-color: #09505F;
+  --bs-btn-disabled-color: #0C6478;
+  --bs-btn-disabled-border-color: #0C6478;
+  --bs-btn-focus-shadow-rgb: 12, 100, 120;
+}
+
+/* ---------- Etiquetas ---------- */
+.badge {
+  font-weight: 600;
+  letter-spacing: .01em;
+  border-radius: .5rem;
+  padding: .4em .65em;
+}
+.text-bg-secondary {
+  background-color: #E8EBEF !important;
+  color: #475467 !important;
+}
+
+/* ---------- Alertas ---------- */
+.alert { border-left-width: 4px; border-radius: .75rem; }
+.alert-success { --bs-alert-bg: #E8F5EE; --bs-alert-color: #14532D; --bs-alert-border-color: #198754; }
+.alert-danger  { --bs-alert-bg: #FDECEC; --bs-alert-color: #7F1D1D; --bs-alert-border-color: #DC3545; }
+.alert-warning { --bs-alert-bg: #FFF6E0; --bs-alert-color: #78350F; --bs-alert-border-color: #F59E0B; }
+.alert-info    { --bs-alert-bg: #E3F0F3; --bs-alert-color: #073F4B; --bs-alert-border-color: #0C6478; }
+
+/* ---------- Formulários ---------- */
+.form-label { font-weight: 600; font-size: .875rem; }
+.form-control, .form-select {
+  border-color: #D5CFC2;
+  border-radius: .6rem;
+  padding: .55rem .8rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--ma-petroleo);
+  box-shadow: 0 0 0 .22rem rgba(12, 100, 120, .18);
+}
+.form-check-input:checked {
+  background-color: var(--ma-petroleo);
+  border-color: var(--ma-petroleo);
+}
+.form-check-input:focus {
+  border-color: var(--ma-petroleo);
+  box-shadow: 0 0 0 .22rem rgba(12, 100, 120, .18);
+}
+
+/* ---------- Paginação ---------- */
+.pagination {
+  --bs-pagination-color: #0C6478;
+  --bs-pagination-hover-color: #09505F;
+  --bs-pagination-hover-bg: #E3F0F3;
+  --bs-pagination-focus-color: #09505F;
+  --bs-pagination-focus-bg: #E3F0F3;
+  --bs-pagination-active-bg: #0C6478;
+  --bs-pagination-active-border-color: #0C6478;
+  --bs-pagination-border-color: #E6E1D6;
+  --bs-pagination-focus-box-shadow: 0 0 0 .22rem rgba(12, 100, 120, .18);
+}
+
+/* ---------- Rodapé ---------- */
+.rodape {
+  color: var(--ma-suave);
+  font-size: .8rem;
+  text-align: center;
+  padding: 1.75rem 0;
+}
