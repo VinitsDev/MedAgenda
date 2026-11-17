@@ -242,3 +242,72 @@ a { text-underline-offset: .2em; }
   color: rgba(255, 255, 255, .92);
 }
 .auth-lateral li svg { flex: none; margin-top: .2rem; }
+
+/* ---------- Home ---------- */
+.hero {
+  background: #fff;
+  border: 1px solid var(--ma-linha);
+  border-radius: 1.25rem;
+  padding: 3.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -70px;
+  top: -70px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: var(--ma-petroleo-claro);
+}
+.hero > * { position: relative; z-index: 1; }
+.hero h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.15; max-width: 16ch; }
+.hero-etiqueta {
+  display: inline-block;
+  background: var(--ma-petroleo-claro);
+  color: var(--ma-petroleo);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .35rem .75rem;
+  border-radius: 2rem;
+  margin-bottom: 1rem;
+}
+.hero-pontos { list-style: none; padding: 0; margin: 2rem 0 0; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.hero-pontos li { color: var(--ma-suave); font-size: .9rem; display: flex; align-items: center; gap: .45rem; }
+.hero-pontos li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ma-coral); }
+
+.atalho {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  height: 100%;
+  background: #fff;
+  border: 1px solid var(--ma-linha);
+  border-radius: var(--bs-border-radius-lg);
+  padding: 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.atalho:hover {
+  color: inherit;
+  border-color: var(--ma-petroleo);
+  box-shadow: 0 4px 14px rgba(7, 63, 75, .1);
+  transform: translateY(-2px);
+}
+.atalho-icone {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: .75rem;
+  background: var(--ma-petroleo-claro);
+  color: var(--ma-petroleo);
+  display: grid;
+  place-items: center;
+}
+.atalho strong { display: block; color: var(--ma-petroleo-profundo); }
+.atalho .texto { color: var(--ma-suave); font-size: .875rem; }

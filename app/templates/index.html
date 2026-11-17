@@ -1,14 +1,72 @@
 {% extends "base.html" %}
 
+{% block titulo %}MedAgenda - Gestão de consultório{% endblock %}
+
 {% block conteudo %}
-<div class="p-5 bg-white rounded shadow-sm">
-  <h1 class="h3">MedAgenda</h1>
-  {% if current_user.is_authenticated %}
-    <p class="lead mb-0">Olá, {{ current_user.nome }}!</p>
-  {% else %}
-    <p class="lead">Agende suas consultas de forma simples.</p>
-    <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Entrar</a>
-    <a class="btn btn-outline-primary" href="{{ url_for('auth.cadastro') }}">Criar conta</a>
-  {% endif %}
+{% macro atalho(url, titulo, texto, icone) %}
+<div class="col-sm-6 col-lg-4">
+  <a class="atalho" href="{{ url }}">
+    <span class="atalho-icone">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        {% if icone == 'calendario' %}
+          <rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>
+        {% elif icone == 'lista' %}
+          <path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>
+        {% elif icone == 'usuario' %}
+          <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+        {% elif icone == 'pessoas' %}
+          <circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c2.4.6 4 2.2 4 5.2"/>
+        {% elif icone == 'cruz' %}
+          <rect x="9" y="3" width="6" height="18" rx="2"/><rect x="3" y="9" width="18" height="6" rx="2"/>
+        {% elif icone == 'etiqueta' %}
+          <path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1"/>
+        {% elif icone == 'relogio' %}
+          <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+        {% endif %}
+      </svg>
+    </span>
+    <span>
+      <strong>{{ titulo }}</strong>
+      <span class="texto">{{ texto }}</span>
+    </span>
+  </a>
 </div>
+{% endmacro %}
+
+{% if current_user.is_authenticated %}
+  <div class="mb-4">
+    <h1 class="h3 mb-1">Olá, {{ current_user.nome.split(' ')[0] }}!</h1>
+    <p class="text-muted mb-0">
+      {% if current_user.eh_recepcionista %}Painel da recepção.{% else %}O que você quer fazer hoje?{% endif %}
+    </p>
+  </div>
+
+  <div class="row g-3">
+    {% if current_user.eh_recepcionista %}
+      {{ atalho(url_for('agendamentos.lista'), 'Agendamentos', 'Consulte, remarque, conclua ou cancele.', 'lista') }}
+      {{ atalho(url_for('pacientes.lista'), 'Pacientes', 'Cadastre e pesquise pacientes.', 'pessoas') }}
+      {{ atalho(url_for('profissionais.lista'), 'Profissionais', 'Cadastros e especialidades de cada um.', 'cruz') }}
+      {{ atalho(url_for('especialidades.lista'), 'Especialidades', 'Mantenha a lista de especialidades.', 'etiqueta') }}
+      {{ atalho(url_for('disponibilidades.consulta'), 'Horários', 'Veja e agende os horários livres.', 'relogio') }}
+    {% else %}
+      {{ atalho(url_for('disponibilidades.consulta'), 'Agendar consulta', 'Veja os horários livres e escolha o seu.', 'calendario') }}
+      {{ atalho(url_for('agendamentos.meus'), 'Meus agendamentos', 'Acompanhe, remarque ou cancele.', 'lista') }}
+      {{ atalho(url_for('pacientes.meu'), 'Meu cadastro', 'Confira e atualize seus dados.', 'usuario') }}
+    {% endif %}
+  </div>
+{% else %}
+  <section class="hero">
+    <span class="hero-etiqueta">Gestão de consultório</span>
+    <h1>Agende suas consultas de forma simples.</h1>
+    <p class="lead text-muted mb-4">Veja os horários livres, marque e acompanhe tudo em um só lugar.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}">Entrar</a>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for('auth.cadastro') }}">Criar conta</a>
+    <ul class="hero-pontos">
+      <li>Horários de cada profissional</li>
+      <li>Remarcação e cancelamento online</li>
+      <li>Histórico das suas consultas</li>
+    </ul>
+  </section>
+{% endif %}
 {% endblock %}
