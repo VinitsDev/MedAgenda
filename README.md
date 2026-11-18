@@ -39,8 +39,6 @@ routes (blueprints)  ->  services  ->  models
 - **services:** concentram as regras de negócio e a autorização. Não importam nada do Flask. Recebem o usuário como parâmetro e sinalizam problemas com `ErroDeNegocio`, `NaoEncontrado` e `AcessoNegado`.
 - **models:** entidades SQLAlchemy e constraints do banco.
 
-Equivalência com Spring: blueprint = `@Controller`, service = `@Service`, model = `@Entity`, `@recepcionista_required` = `@PreAuthorize`.
-
 ### Decisões de segurança
 
 - A autorização é conferida **no service**, e não só na rota ou no HTML. Esconder um botão é conforto; a regra real fica no service.
@@ -150,7 +148,6 @@ MedAgenda/
 
 ## Limitações conhecidas
 
-- **Ainda não há testes automatizados.** As regras foram verificadas manualmente, com duas janelas de navegador (recepção e cliente), adulteração de formulário pelo DevTools e conferência no banco.
 - O CPF é validado apenas pelo tamanho (11 dígitos), sem o dígito verificador.
 - A checagem de sobreposição de horários não é atômica: duas gerações simultâneas no mesmo dia e profissional podem passar juntas. A solução definitiva é uma *exclusion constraint* no PostgreSQL.
 - O conflito de horários do mesmo paciente também não é atômico em acessos simultâneos.
